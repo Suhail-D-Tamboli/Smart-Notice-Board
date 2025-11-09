@@ -1,0 +1,865 @@
+:root {
+  --bg: #f8f9fa;
+  --panel: #ffffff;
+  --muted: #6c757d;
+  --text: #212529;
+  --ring: rgba(13, 110, 253, 0.25);
+  --brand: #0d6efd;
+  --brand-2: #0b5ed7;
+  --card: #ffffff;
+  --border: #dee2e6;
+  --accent: #0d6efd;
+  --danger: #dc3545;
+  --ok: #198754;
+  --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --sidebar-bg: #f8f9fa;
+  --toolbar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --card-border: #dee2e6;
+  --card-hover: #f8f9fa;
+  --badge-bg: #e9ecef;
+  --badge-text: #495057;
+  --input-bg: #ffffff;
+  --input-border: #ced4da;
+  --btn-primary: #0d6efd;
+  --btn-primary-hover: #0b5ed7;
+  --btn-secondary: #6c757d;
+  --btn-secondary-hover: #5c636a;
+  --btn-danger: #dc3545;
+  --btn-danger-hover: #bb2d3b;
+  --btn-success: #198754;
+  --btn-success-hover: #157347;
+}
+
+[data-theme="dark"] {
+  --bg: #121212;
+  --panel: #1e1e1e;
+  --muted: #a0a0a0;
+  --text: #e0e0e0;
+  --ring: rgba(13, 110, 253, 0.5);
+  --brand: #4dabf7;
+  --brand-2: #339af0;
+  --card: #2d2d2d;
+  --border: #444444;
+  --accent: #4dabf7;
+  --danger: #ff6b6b;
+  --ok: #51cf66;
+  --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+  --sidebar-bg: #1a1a1a;
+  --toolbar-bg: #252525;
+  --card-bg: #2d2d2d;
+  --card-border: #444444;
+  --card-hover: #333333;
+  --badge-bg: #333333;
+  --badge-text: #e0e0e0;
+  --input-bg: #252525;
+  --input-border: #444444;
+  --btn-primary: #4dabf7;
+  --btn-primary-hover: #339af0;
+  --btn-secondary: #6c757d;
+  --btn-secondary-hover: #5c636a;
+  --btn-danger: #ff6b6b;
+  --btn-danger-hover: #ff5252;
+  --btn-success: #51cf66;
+  --btn-success-hover: #40c057;
+}
+
+.teacher-portal {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  min-height: 100vh;
+  transition: background 0.3s ease, color 0.2s ease;
+}
+
+.sidebar {
+  width: 260px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  transition: all 0.3s ease;
+}
+
+.sidebar h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, var(--accent), #0ea5e9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sidebar .menu-item {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid transparent;
+  padding: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.sidebar .menu-item:hover {
+  background: rgba(13, 110, 253, 0.1);
+  border-color: rgba(13, 110, 253, 0.2);
+  color: var(--accent);
+}
+
+.sidebar .submenu {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+  border-left: 2px solid var(--accent);
+  padding-left: 5px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.sidebar .submenu.show {
+  max-height: 200px;
+}
+
+.sidebar .submenu button {
+  background: rgba(13, 110, 253, 0.1);
+  padding: 10px;
+  margin-bottom: 5px;
+  color: var(--text);
+  border: 1px solid rgba(13, 110, 253, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  text-align: left;
+}
+
+.sidebar .submenu button:hover {
+  background: rgba(13, 110, 253, 0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--toolbar-bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  transition: background 0.3s ease, border-color 0.2s ease;
+  backdrop-filter: saturate(120%) blur(4px);
+  box-shadow: var(--shadow);
+}
+
+.search-bar {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.search-bar input:focus {
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: var(--accent);
+}
+
+.theme-toggle {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--accent), #0284c7);
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  transition: transform 0.05s ease, background 0.2s ease;
+}
+
+.theme-toggle:active {
+  transform: translateY(1px);
+}
+
+.content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  background: var(--bg);
+  overflow-y: auto;
+  max-height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.notice-list,
+#eventsContainer {
+  margin-bottom: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.notice-item,
+.event-item {
+  position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 24px;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.3s ease, border-color 0.2s ease;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* Full width */
+  max-width: 100%; /* Ensure it doesn't exceed container */
+}
+
+.notice-item:hover,
+.event-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+  background: var(--card-hover);
+}
+
+.notice-header,
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.notice-title,
+.event-title {
+  font-weight: bold;
+  font-size: 20px;
+  color: var(--text);
+}
+
+.notice-date,
+.event-date {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.event-desc {
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.action-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.action-btns button {
+  background: linear-gradient(180deg, var(--btn-primary), #0284c7);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.action-btns button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+}
+
+.action-btns button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.add-notice-form {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 24px;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  min-height: 300px;
+}
+
+.add-notice-form h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.add-notice-form input[type="text"],
+.add-notice-form input[type="date"],
+.add-notice-form textarea,
+.add-notice-form select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.add-notice-form textarea {
+  min-height: 120px;
+}
+
+.add-notice-form button {
+  background: linear-gradient(180deg, var(--btn-primary), #0284c7);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.25);
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.add-notice-form button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 0.75rem 1.5rem rgba(13, 110, 253, 0.3);
+}
+
+.add-notice-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 18px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--badge-bg);
+  border: 1px solid var(--border);
+  color: var(--badge-text);
+  font-weight: 700;
+  font-size: 12px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Modal styles for registration form */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.modal-content p {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--muted);
+}
+
+.form-fields {
+  margin-bottom: 20px;
+}
+
+.field-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.field-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.remove-field-btn {
+  background: var(--btn-danger);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.remove-field-btn:hover {
+  background: var(--btn-danger-hover);
+}
+
+.add-field-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.new-field-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.add-field-btn {
+  background: linear-gradient(180deg, var(--btn-primary), #0284c7);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.add-field-btn:hover {
+  opacity: 0.9;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.save-btn, .cancel-btn {
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.save-btn {
+  background: linear-gradient(180deg, var(--btn-primary), #0284c7);
+  color: white;
+  border: none;
+}
+
+.cancel-btn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.save-btn:hover {
+  opacity: 0.9;
+  background: linear-gradient(180deg, var(--btn-primary-hover), #0277b3);
+}
+
+.cancel-btn:hover {
+  background: rgba(148, 163, 184, 0.1);
+}
+
+/* Registrations section styles */
+.registrations-section {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: #F8FAFC;
+}
+
+.registrations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.registrations-header h3 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(90deg, #60A5FA, #A78BFA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.registrations-header button {
+  background: linear-gradient(90deg, #3B82F6, #A78BFA);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.registrations-header button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Student Cards Horizontal Layout */
+.registrations-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 0;
+}
+
+.student-card-header {
+  background: linear-gradient(135deg, #E0F2FE, #FDF2F8);
+  border: 1px solid #E5E7EB;
+  border-radius: 20px;
+  padding: 16px 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  font-weight: 700;
+}
+
+.student-card {
+  background: linear-gradient(135deg, #E0F2FE, #FDF2F8);
+  border: 1px solid #E5E7EB;
+  border-radius: 20px;
+  padding: 16px 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.student-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.student-details-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.student-detail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.student-detail-label {
+  font-size: 12px;
+  color: #6B7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.student-detail-value {
+  font-size: 16px;
+  color: #1E293B;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-detail:not(:first-child) {
+  border-left: 1px solid #E5E7EB;
+  padding-left: 16px;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .notice-title,
+  .event-title {
+    font-size: 18px;
+  }
+  
+  .add-notice-form {
+    padding: 20px;
+  }
+  
+  .registrations-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .teacher-portal {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    padding: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    height: auto;
+  }
+  
+  .sidebar h2 {
+    margin-bottom: 10px;
+    width: 100%;
+    text-align: left;
+  }
+  
+  .sidebar .menu-item,
+  .sidebar button {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    margin-bottom: 0;
+    padding: 12px;
+  }
+  
+  .main {
+    padding: 15px;
+  }
+  
+  .notice-list,
+  #eventsContainer {
+    text-align: left;
+  }
+  
+  .notice-item,
+  .event-item {
+    padding: 20px;
+    margin-bottom: 15px;
+    min-height: 150px;
+  }
+  
+  .notice-header,
+  .event-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .action-btns {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .action-btns button {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+  }
+  
+  .add-notice-form {
+    padding: 20px;
+  }
+  
+  .add-notice-form button {
+    width: 100%;
+    padding: 14px;
+  }
+  
+  .sidebar .submenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #2c3e50;
+    margin-left: 0;
+    border-left: none;
+    padding-left: 15px;
+  }
+  
+  .sidebar .submenu.show {
+    max-height: 1000px;
+  }
+  
+  .registrations-grid {
+    gap: 16px;
+    padding: 16px 0;
+  }
+  
+  .student-card-header,
+  .student-card {
+    padding: 16px 20px;
+    gap: 16px;
+  }
+  
+  .student-details-container {
+    gap: 16px;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .search-bar input {
+    width: 100%;
+  }
+  
+  .theme-toggle {
+    width: 100%;
+    padding: 12px;
+  }
+  
+  .registrations-header h3 {
+    font-size: 24px;
+  }
+  
+  /* Mobile-specific adjustments for student cards */
+  .student-card-header,
+  .student-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .student-details-container {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .student-detail:not(:first-child) {
+    border-left: none;
+    padding-left: 0;
+    margin-top: 12px;
+  }
+  
+  .student-detail {
+    flex: 1 1 calc(50% - 12px);
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-detail {
+    flex: 1 1 100%;
+  }
+  
+  .registrations-header h3 {
+    font-size: 22px;
+  }
+  
+  .student-card-header,
+  .student-card {
+    padding: 14px 16px;
+  }
+}

@@ -1,0 +1,12 @@
+.App {
+  text-align: center;
+}
+
+.error {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  border: 1px solid #ef4444;
+}
