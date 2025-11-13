@@ -110,3 +110,4 @@ A comprehensive notice and event management system for educational institutions 
    - Ensure your MongoDB Atlas cluster allows connections from Vercel IPs
    - If you see permission errors, try redeploying as the build cache may need to be refreshed
    - Make sure your Vercel project is set to use the correct Node.js version (14 or higher)
+   - Ensure the `dist/` directory is properly built before deployment
