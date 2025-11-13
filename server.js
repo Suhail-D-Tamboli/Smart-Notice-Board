@@ -158,6 +158,278 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Notice routes
+app.get('/api/notices', async (req, res) => {
+  try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
+    }
+    
+    const { department, semester } = req.query;
+    const noticesCollection = db.collection('notices');
+    
+    console.log('Fetching notices with filters - Department:', department, 'Semester:', semester);
+    
+    // If department and semester are provided, filter by them
+    let query = {};
+    if (department && semester) {
+      query = { department, semester };
+      console.log('Using query filter:', query);
+    }
+    
+    const notices = await noticesCollection.find(query).sort({ date: -1 }).toArray();
+    console.log('Found notices:', notices.length);
+    res.json(notices);
+  } catch (error) {
+    console.error('Get notices error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.post('/api/notices', upload.single('file'), async (req, res) => {
+  try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
+    }
+    
+    const { title, description, semester, department, createdBy } = req.body;
+    const noticesCollection = db.collection('notices');
+    
+    const newNotice = {
+      title,
+      description,
+      semester,
+      department,
+      createdBy,
+      date: new Date(),
+      createdAt: new Date()
+    };
+    
+    // Add file path if file was uploaded
+    if (req.file) {
+      newNotice.file = `/uploads/${req.file.filename}`;
+    }
+    
+    const result = await noticesCollection.insertOne(newNotice);
+    newNotice._id = result.insertedId;
+    
+    console.log('New notice created:', newNotice._id);
+    
+    res.json(newNotice);
+  } catch (error) {
+    console.error('Create notice error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/notices/:id', upload.single('file'), async (req, res) => {
+  try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
+    }
+    
+    const { id } = req.params;
+    const { title, description, semester, department } = req.body;
+    const noticesCollection = db.collection('notices');
+    
+    const updateData = {
+      title,
+      description,
+      semester,
+      department
+    };
+    
+    // Add file path if file was uploaded
+    if (req.file) {
+      updateData.file = `/uploads/${req.file.filename}`;
+    }
+    
+    const result = await noticesCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Notice not found' });
+    }
+    
+    const updatedNotice = await noticesCollection.findOne({ _id: new ObjectId(id) });
+    res.json(updatedNotice);
+  } catch (error) {
+    console.error('Update notice error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.delete('/api/notices/:id', async (req, res) => {
+  try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
+    }
+    
+    const { id } = req.params;
+    const noticesCollection = db.collection('notices');
+    
+    const result = await noticesCollection.deleteOne({ _id: new ObjectId(id) });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Notice not found' });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete notice error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Event routes
+app.get('/api/events', async (req, res) => {
+  try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
+    }
+    
+    const { department, semester } = req.query;
+    const eventsCollection = db.collection('events');
+    
+    console.log('Fetching events with filters - Department:', department, 'Semester:', semester);
+    
+    // If department and semester are provided, filter by them
+    let query = {};
+    if (department && semester) {
+      query = { department, semester };
+      console.log('Using query filter:', query);
+    }
+    
+    const events = await eventsCollection.find(query).sort({ date: -1 }).toArray();
+    console.log('Found events:', events.length);
+    res.json(events);
+  } catch (error) {
+    console.error('Get events error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.post('/api/events', upload.single('file'), async (req, res) => {
+  try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
+    }
+    
+    const { title, description, date, createdBy, registrationFields, semester, department } = req.body;
+    const eventsCollection = db.collection('events');
+    
+    const newEvent = {
+      title,
+      description,
+      date: new Date(date),
+      createdBy,
+      semester,
+      department,
+      createdAt: new Date(),
+      hasRegistrationForm: false
+    };
+    
+    // Add file path if file was uploaded
+    if (req.file) {
+      newEvent.file = `/uploads/${req.file.filename}`;
+    }
+    
+    // Add registration fields if provided
+    if (registrationFields) {
+      newEvent.registrationFields = JSON.parse(registrationFields);
+      newEvent.hasRegistrationForm = true;
+    }
+    
+    const result = await eventsCollection.insertOne(newEvent);
+    newEvent._id = result.insertedId;
+    
+    console.log('New event created:', newEvent._id);
+    
+    res.json(newEvent);
+  } catch (error) {
+    console.error('Create event error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/events/:id', upload.single('file'), async (req, res) => {
+  try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
+    }
+    
+    const { id } = req.params;
+    const { title, description, date, registrationFields, semester, department } = req.body;
+    const eventsCollection = db.collection('events');
+    
+    const updateData = {
+      title,
+      description,
+      date: new Date(date),
+      semester,
+      department
+    };
+    
+    // Add file path if file was uploaded
+    if (req.file) {
+      updateData.file = `/uploads/${req.file.filename}`;
+    }
+    
+    // Add registration fields if provided
+    if (registrationFields) {
+      updateData.registrationFields = JSON.parse(registrationFields);
+      updateData.hasRegistrationForm = true;
+    }
+    
+    const result = await eventsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+    
+    const updatedEvent = await eventsCollection.findOne({ _id: new ObjectId(id) });
+    res.json(updatedEvent);
+  } catch (error) {
+    console.error('Update event error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.delete('/api/events/:id', async (req, res) => {
+  try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
+    }
+    
+    const { id } = req.params;
+    const eventsCollection = db.collection('events');
+    
+    const result = await eventsCollection.deleteOne({ _id: new ObjectId(id) });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete event error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
 app.get('*', (req, res) => {
