@@ -40,19 +40,28 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://tambolisuhail3_db_user:9isOHM0Ay4NqTxW7@realtimeemergency.zutppat.mongodb.net/smart-campus-hub?retryWrites=true&w=majority';
-const DB_NAME = 'smart-campus-hub';
+const DB_NAME = process.env.DB_NAME || 'smart-campus-hub';
 
 // Configure web-push with VAPID keys
-webpushLib.setVapidDetails(
-  process.env.VAPID_EMAIL || 'mailto:your-email@example.com',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpushLib.setVapidDetails(
+    process.env.VAPID_EMAIL || 'mailto:your-email@example.com',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+} else {
+  console.log('VAPID keys not configured. Push notifications will not work.');
+}
 
 let db;
 let client;
 
-// Connect to MongoDB
+// Connect to MongoDB - only when not in Vercel build environment
+if (!process.env.VERCEL || process.env.VERCEL_ENV === 'development') {
+  connectToDatabase();
+}
+
+// Connect to database when server starts
 async function connectToDatabase() {
   try {
     client = new MongoClient(MONGODB_URI);
@@ -64,9 +73,6 @@ async function connectToDatabase() {
     process.exit(1);
   }
 }
-
-// Connect to database when server starts
-connectToDatabase();
 
 // Middleware to verify user authentication
 const verifyUser = async (req, res, next) => {
@@ -846,6 +852,16 @@ async function sendPushNotification(payload, department = null, semester = null)
   }
 }
 
+// Health check endpoint for Vercel
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.VERCEL ? 'vercel' : 'local',
+    mongodbConfigured: !!process.env.MONGODB_URI
+  });
+});
+
 // Serve static files from the React app build directory
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -855,8 +871,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
-// Start server - only when not running on Vercel
-if (!process.env.VERCEL) {
+// Start server - only when not running on Vercel or in development
+if (!process.env.VERCEL || process.env.VERCEL_ENV === 'development') {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`Access the application at http://localhost:${PORT} or http://127.0.0.1:${PORT}`);
@@ -864,7 +880,7 @@ if (!process.env.VERCEL) {
 }
 
 // Graceful shutdown - only when not running on Vercel
-if (!process.env.VERCEL) {
+if ((!process.env.VERCEL || process.env.VERCEL_ENV === 'development') && typeof process !== 'undefined') {
   process.on('SIGINT', async () => {
     console.log('Shutting down gracefully...');
     if (client) {
