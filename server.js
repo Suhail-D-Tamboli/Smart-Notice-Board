@@ -37,6 +37,13 @@ const upload = multer({ storage: storage });
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://tambolisuhail3_db_user:9isOHM0Ay4NqTxW7@realtimeemergency.zutppat.mongodb.net/smart-campus-hub?retryWrites=true&w=majority';
 const DB_NAME = process.env.DB_NAME || 'smart-campus-hub';
 
+// Log MongoDB configuration status
+if (!process.env.MONGODB_URI) {
+  console.log('WARNING: MONGODB_URI not set in environment variables. Using default connection string.');
+} else {
+  console.log('MONGODB_URI is set in environment variables.');
+}
+
 // Configure web-push with VAPID keys
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpushLib.setVapidDetails(
@@ -54,6 +61,13 @@ let client;
 // Connect to MongoDB
 async function connectToDatabase() {
   try {
+    // Don't try to connect if MONGODB_URI is not set
+    if (!MONGODB_URI) {
+      console.log('MONGODB_URI not configured. Skipping database connection.');
+      return;
+    }
+    
+    console.log('Attempting to connect to MongoDB...');
     client = new MongoClient(MONGODB_URI);
     await client.connect();
     db = client.db(DB_NAME);
@@ -77,7 +91,7 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     // Check if database is connected
     if (!db) {
-      return res.status(500).json({ success: false, message: 'Database connection not available' });
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
     }
     
     const { username, password, role } = req.body;
@@ -101,7 +115,7 @@ app.post('/api/auth/signup', async (req, res) => {
   try {
     // Check if database is connected
     if (!db) {
-      return res.status(500).json({ success: false, message: 'Database connection not available' });
+      return res.status(500).json({ success: false, message: 'Database connection not available. Please check MongoDB configuration.' });
     }
     
     const { username, password, role, semester, department } = req.body;
