@@ -855,18 +855,25 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Access the application at http://localhost:${PORT} or http://127.0.0.1:${PORT}`);
-});
+// Start server - only when not running on Vercel
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Access the application at http://localhost:${PORT} or http://127.0.0.1:${PORT}`);
+  });
+}
 
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('Shutting down gracefully...');
-  if (client) {
-    await client.close();
-    console.log('MongoDB connection closed');
-  }
-  process.exit(0);
-});
+// Graceful shutdown - only when not running on Vercel
+if (!process.env.VERCEL) {
+  process.on('SIGINT', async () => {
+    console.log('Shutting down gracefully...');
+    if (client) {
+      await client.close();
+      console.log('MongoDB connection closed');
+    }
+    process.exit(0);
+  });
+}
+
+// Export the app for Vercel
+export default app;

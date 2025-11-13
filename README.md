@@ -1,60 +1,111 @@
 # Smart Campus Hub
 
-A modern web application for managing campus notices, events, and communications between teachers and students.
+A comprehensive notice and event management system for educational institutions with real-time notifications, AI features, and more.
 
-## Getting Started
+## Features
+
+- Real-time push notifications for notices and events
+- AI-powered notice summarization
+- AI-generated event posters
+- Speech-to-text for notice creation
+- Student event registration system
+- Department and semester-based filtering
+- Multi-language support (Kannada, Hindi, English)
+- Responsive design for all devices
+
+## Deployment to Vercel
 
 ### Prerequisites
-- Node.js (version 14 or higher)
-- npm (comes with Node.js)
 
-### Starting the Application
+1. A [Vercel](https://vercel.com) account
+2. A MongoDB database (MongoDB Atlas recommended)
+3. VAPID keys for push notifications
 
-You can start the application in several ways:
+### Steps to Deploy
 
-#### Option 1: Using the Batch File (Windows)
-Double-click on `start.bat` or run:
-```
-start.bat
-```
+1. **Prepare Environment Variables**:
+   Create the following environment variables in your Vercel project settings:
+   - `MONGODB_URI` - Your MongoDB connection string
+   - `VAPID_EMAIL` - Email for VAPID keys
+   - `VAPID_PUBLIC_KEY` - Public VAPID key
+   - `VAPID_PRIVATE_KEY` - Private VAPID key
 
-#### Option 2: Using PowerShell
-Run the PowerShell script:
-```
-.\start.ps1
-```
-
-#### Option 3: Manual Start
-1. Open a terminal in the project directory
-2. Install dependencies (if not already installed):
+2. **Generate VAPID Keys** (if you don't have them):
+   ```bash
+   npx web-push generate-vapid-keys
    ```
+
+3. **Deploy to Vercel**:
+   - Connect your GitHub repository to Vercel
+   - Or deploy using the Vercel CLI:
+     ```bash
+     npm install -g vercel
+     vercel
+     ```
+
+4. **Configure Environment Variables** in Vercel dashboard:
+   - Go to your project settings
+   - Navigate to "Environment Variables"
+   - Add all required environment variables
+
+### Local Development
+
+1. **Install Dependencies**:
+   ```bash
    npm install
    ```
-3. Build the project:
+
+2. **Set up Environment Variables**:
+   Create a `.env` file in the root directory with:
    ```
+   MONGODB_URI=your_mongodb_connection_string
+   VAPID_EMAIL=your_email@example.com
+   VAPID_PUBLIC_KEY=your_public_vapid_key
+   VAPID_PRIVATE_KEY=your_private_vapid_key
+   ```
+
+3. **Run Development Server**:
+   ```bash
+   npm run dev:full
+   ```
+
+4. **Build for Production**:
+   ```bash
    npm run build
    ```
-4. Start the server:
-   ```
+
+5. **Run Production Server**:
+   ```bash
    npm start
    ```
 
-### Accessing the Application
-Once the server is running, open your browser and go to:
-- [http://localhost:5010](http://localhost:5010)
+## Project Structure
 
-### Default Port
-The application runs on port 5010. If this port is in use, the application will automatically use the next available port.
+- `src/` - Frontend React components
+- `server.js` - Backend Express server
+- `public/` - Static assets and service worker
+- `dist/` - Built frontend files (generated after build)
 
-## Features
-- Teacher and student portals
-- Notice and event management
-- AI-powered registration forms
-- File uploads and downloads
-- Dark/light mode toggle
-- Responsive design for all devices
+## Important Notes
 
-## Login Credentials
-You can create your own accounts or use these test credentials:
-- Teacher: Username `teacher1`, Password `password123`
-- Student: Create your own account during signup
+- File uploads are stored in the `uploads/` directory
+- The application uses MongoDB for data storage
+- Push notifications require HTTPS in production
+- Service worker must be at the root level for push notifications to work
+
+## Troubleshooting
+
+1. **Push Notifications Not Working**:
+   - Ensure VAPID keys are correctly configured
+   - Check that the service worker is properly registered
+   - Verify HTTPS is being used in production
+
+2. **Database Connection Issues**:
+   - Verify MongoDB URI is correct
+   - Check MongoDB Atlas IP whitelist
+   - Ensure database credentials are correct
+
+3. **File Upload Issues**:
+   - Check file size limits
+   - Verify upload directory permissions
+   - Ensure sufficient storage space
