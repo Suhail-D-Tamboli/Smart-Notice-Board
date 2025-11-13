@@ -64,6 +64,63 @@ async function connectToDatabase() {
   }
 }
 
+// Serve static files from the React app build directory and uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// API Routes
+// User routes
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password, role } = req.body;
+    const usersCollection = db.collection('users');
+    
+    const user = await usersCollection.findOne({ username, password, role });
+    
+    if (user) {
+      console.log('Login successful for user:', user.username, 'Department:', user.department, 'Semester:', user.semester);
+      res.json({ success: true, user });
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { username, password, role, semester, department } = req.body;
+    const usersCollection = db.collection('users');
+    
+    // Check if user already exists
+    const existingUser = await usersCollection.findOne({ username, role });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'User already exists' });
+    }
+    
+    // Create new user
+    const newUser = {
+      username,
+      password,
+      role,
+      semester: role === 'student' ? semester : undefined,
+      department: role === 'student' ? department : undefined,
+      createdAt: new Date()
+    };
+    
+    const result = await usersCollection.insertOne(newUser);
+    newUser._id = result.insertedId;
+    
+    console.log('Signup successful for user:', username);
+    res.json({ success: true, user: newUser });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Health check endpoint for Vercel
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -73,10 +130,6 @@ app.get('/api/health', (req, res) => {
     mongodbConfigured: !!process.env.MONGODB_URI
   });
 });
-
-// Serve static files from the React app build directory and uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.static(path.join(__dirname, 'dist')));
 
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
