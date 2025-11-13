@@ -60,7 +60,10 @@ async function connectToDatabase() {
     console.log('Connected to MongoDB Atlas');
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
-    process.exit(1);
+    // Don't exit in Vercel environment, just log the error
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
   }
 }
 
@@ -72,6 +75,11 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // User routes
 app.post('/api/auth/login', async (req, res) => {
   try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available' });
+    }
+    
     const { username, password, role } = req.body;
     const usersCollection = db.collection('users');
     
@@ -91,6 +99,11 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.post('/api/auth/signup', async (req, res) => {
   try {
+    // Check if database is connected
+    if (!db) {
+      return res.status(500).json({ success: false, message: 'Database connection not available' });
+    }
+    
     const { username, password, role, semester, department } = req.body;
     const usersCollection = db.collection('users');
     
@@ -137,10 +150,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
-// Connect to MongoDB - only when not in Vercel build environment
-if (!process.env.VERCEL || process.env.VERCEL_ENV === 'development') {
-  connectToDatabase();
-}
+// Connect to MongoDB - always try to connect, but handle errors gracefully
+connectToDatabase();
 
 // Start server - only when not running on Vercel or in development
 if (!process.env.VERCEL || process.env.VERCEL_ENV === 'development') {
