@@ -36,7 +36,6 @@ const upload = multer({ storage: storage });
 
 // Serve static files from the React app build directory and uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.static(path.join(__dirname, 'dist')));
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://tambolisuhail3_db_user:9isOHM0Ay4NqTxW7@realtimeemergency.zutppat.mongodb.net/smart-campus-hub?retryWrites=true&w=majority';
@@ -862,14 +861,27 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, 'dist')));
+// Serve static files from the React app build directory and uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Only serve static files in production/non-Vercel environments
+if (!process.env.VERCEL) {
+  app.use(express.static(path.join(__dirname, 'dist')));
+}
 
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist/index.html'));
-});
+// Only in production/non-Vercel environments
+if (!process.env.VERCEL) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist/index.html'));
+  });
+}
+
+// Connect to MongoDB - only when not in Vercel build environment
+if (!process.env.VERCEL || process.env.VERCEL_ENV === 'development') {
+  connectToDatabase();
+}
 
 // Start server - only when not running on Vercel or in development
 if (!process.env.VERCEL || process.env.VERCEL_ENV === 'development') {

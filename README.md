@@ -19,23 +19,10 @@ A comprehensive notice and event management system for educational institutions 
 
 1. A [Vercel](https://vercel.com) account
 2. A MongoDB database (MongoDB Atlas recommended)
-3. VAPID keys for push notifications
 
 ### Steps to Deploy
 
-1. **Prepare Environment Variables**:
-   Create the following environment variables in your Vercel project settings:
-   - `MONGODB_URI` - Your MongoDB connection string
-   - `VAPID_EMAIL` - Email for VAPID keys
-   - `VAPID_PUBLIC_KEY` - Public VAPID key
-   - `VAPID_PRIVATE_KEY` - Private VAPID key
-
-2. **Generate VAPID Keys** (if you don't have them):
-   ```bash
-   npx web-push generate-vapid-keys
-   ```
-
-3. **Deploy to Vercel**:
+1. **Deploy to Vercel**:
    - Connect your GitHub repository to Vercel
    - Or deploy using the Vercel CLI:
      ```bash
@@ -43,10 +30,17 @@ A comprehensive notice and event management system for educational institutions 
      vercel
      ```
 
-4. **Configure Environment Variables** in Vercel dashboard:
-   - Go to your project settings
-   - Navigate to "Environment Variables"
-   - Add all required environment variables
+2. **Configure Environment Variables** in Vercel dashboard:
+   Go to your project settings → "Environment Variables" and add:
+   - `MONGODB_URI` - Your MongoDB connection string
+   - `VAPID_EMAIL` - Email for VAPID keys (optional, for push notifications)
+   - `VAPID_PUBLIC_KEY` - Public VAPID key (optional, for push notifications)
+   - `VAPID_PRIVATE_KEY` - Private VAPID key (optional, for push notifications)
+
+3. **Generate VAPID Keys** (if you want push notifications):
+   ```bash
+   npx web-push generate-vapid-keys
+   ```
 
 ### Local Development
 
@@ -109,3 +103,8 @@ A comprehensive notice and event management system for educational institutions 
    - Check file size limits
    - Verify upload directory permissions
    - Ensure sufficient storage space
+
+4. **Vercel Deployment Issues**:
+   - Make sure all required environment variables are set in Vercel dashboard
+   - Check the deployment logs for specific error messages
+   - Ensure your MongoDB Atlas cluster allows connections from Vercel IPs
