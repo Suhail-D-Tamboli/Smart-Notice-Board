@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "builds": [
     {
       "src": "server.js",
@@ -8,16 +10,16 @@
   ],
   "routes": [
     {
-      "src": "/api/health",
-      "dest": "/server.js"
-    },
-    {
       "src": "/api/(.*)",
       "dest": "/server.js"
     },
     {
       "src": "/uploads/(.*)",
       "dest": "/server.js"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|svg|ico|json|woff|woff2|ttf|eot))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",
