@@ -268,8 +268,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user }) => {
         const eventsData = await eventsResponse.json();
         console.log('TeacherPortal: Events data:', eventsData);
         
-        setNotices(noticesData);
-        setEvents(eventsData);
+        setNotices(noticesData.notices || noticesData || []);
+        setEvents(eventsData.events || eventsData || []);
       } catch (err) {
         setError('Failed to load data');
         console.error('TeacherPortal: Error fetching data:', err);
@@ -389,7 +389,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user }) => {
         // Refresh notices
         const noticesResponse = await fetch('/api/notices');
         const noticesData = await noticesResponse.json();
-        setNotices(noticesData);
+        setNotices(noticesData.notices || noticesData || []);
 
         // Reset form
         setNoticeForm({
@@ -454,7 +454,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user }) => {
         // Refresh events
         const eventsResponse = await fetch('/api/events');
         const eventsData = await eventsResponse.json();
-        setEvents(eventsData);
+        setEvents(eventsData.events || eventsData || []);
 
         // Reset form
         setEventForm({

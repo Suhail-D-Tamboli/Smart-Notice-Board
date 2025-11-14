@@ -63,17 +63,17 @@ async function connectToDatabase() {
 // API Routes
 
 // Login endpoint
-app.post('/api/login', async (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   try {
     const database = await connectToDatabase();
     if (!database) {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
-    const { userId, password, role } = req.body;
-    console.log('Login attempt:', { userId, role });
+    const { username, password, role } = req.body;
+    console.log('Login attempt:', { username, role });
 
-    const user = await database.collection('users').findOne({ userId, role });
+    const user = await database.collection('users').findOne({ username, role });
     
     if (!user) {
       return res.status(401).json({ success: false, message: 'User not found' });
@@ -83,9 +83,67 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid password' });
     }
 
-    res.json({ success: true, user: { userId: user.userId, name: user.name, role: user.role } });
+    res.json({ 
+      success: true, 
+      user: { 
+        _id: user._id.toString(),
+        userId: user.username,
+        username: user.username,
+        name: user.username,
+        role: user.role,
+        department: user.department,
+        semester: user.semester
+      } 
+    });
   } catch (error) {
     console.error('Login error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Signup endpoint
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const database = await connectToDatabase();
+    if (!database) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    const { username, password, role, semester, department } = req.body;
+    console.log('Signup attempt:', { username, role });
+
+    // Check if user already exists
+    const existingUser = await database.collection('users').findOne({ username, role });
+    
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: 'User already exists' });
+    }
+
+    // Create new user
+    const newUser = {
+      username,
+      password, // In production, hash this!
+      role,
+      ...(role === 'student' && { semester, department }),
+      createdAt: new Date()
+    };
+
+    const result = await database.collection('users').insertOne(newUser);
+    
+    res.json({ 
+      success: true, 
+      user: { 
+        _id: result.insertedId.toString(),
+        userId: username,
+        username,
+        name: username,
+        role,
+        department,
+        semester
+      } 
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -206,6 +264,69 @@ app.post('/api/events', async (req, res) => {
     res.json({ success: true, eventId: result.insertedId });
   } catch (error) {
     console.error('Add event error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Event registration endpoint
+app.post('/api/events/:id/registrations', async (req, res) => {
+  try {
+    const database = await connectToDatabase();
+    if (!database) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    const { id } = req.params;
+    const registrationData = req.body;
+
+    // Check if student is already registered
+    const existingRegistration = await database.collection('registrations').findOne({
+      eventId: id,
+      studentId: registrationData.studentId
+    });
+
+    if (existingRegistration) {
+      return res.status(409).json({ success: false, message: 'Already registered for this event' });
+    }
+
+    const registration = {
+      eventId: id,
+      ...registrationData,
+      createdAt: new Date()
+    };
+
+    await database.collection('registrations').insertOne(registration);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Event registration error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Update event registration form fields
+app.put('/api/events/:id/registration-form', async (req, res) => {
+  try {
+    const database = await connectToDatabase();
+    if (!database) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    const { id } = req.params;
+    const { registrationFields } = req.body;
+
+    const result = await database.collection('events').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { registrationFields } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update registration form error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

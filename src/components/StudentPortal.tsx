@@ -561,13 +561,13 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ user }) => {
         const noticesResponse = await fetch(`/api/notices?department=${user.department}&semester=${user.semester}`);
         const noticesData = await noticesResponse.json();
         console.log('Fetched notices:', noticesData);
-        setNotices(noticesData);
+        setNotices(noticesData.notices || noticesData || []);
         
         // Fetch events for student's department and semester
         const eventsResponse = await fetch(`/api/events?department=${user.department}&semester=${user.semester}`);
         const eventsData = await eventsResponse.json();
         console.log('Fetched events:', eventsData);
-        setEvents(eventsData);
+        setEvents(eventsData.events || eventsData || []);
       } catch (err) {
         setError('Failed to fetch data');
         console.error('StudentPortal: Error fetching data:', err);
