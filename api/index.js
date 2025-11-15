@@ -331,17 +331,30 @@ app.put('/api/events/:id/registration-form', async (req, res) => {
   }
 });
 
+// Get VAPID public key
+app.get('/api/vapid-public-key', (req, res) => {
+  try {
+    if (!process.env.VAPID_PUBLIC_KEY) {
+      return res.status(503).json({ success: false, message: 'VAPID keys not configured' });
+    }
+    res.json({ publicKey: process.env.VAPID_PUBLIC_KEY });
+  } catch (error) {
+    console.error('Get VAPID key error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Subscribe to push notifications
-app.post('/api/subscribe', async (req, res) => {
+app.post('/api/push-subscribe', async (req, res) => {
   try {
     const database = await connectToDatabase();
-    const subscription = req.body;
-    console.log('New push subscription:', subscription);
+    const { subscription, userId } = req.body;
+    console.log('New push subscription for user:', userId);
     
     if (database) {
       await database.collection('subscriptions').updateOne(
-        { endpoint: subscription.endpoint },
-        { $set: { ...subscription, createdAt: new Date() } },
+        { userId },
+        { $set: { subscription, userId, createdAt: new Date() } },
         { upsert: true }
       );
     }
