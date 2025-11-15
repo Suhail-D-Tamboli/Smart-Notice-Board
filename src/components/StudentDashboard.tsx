@@ -113,22 +113,22 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
         // Fetch events for student's department and semester
         const eventsResponse = await fetch(`/api/events?department=${user.department}&semester=${user.semester}`);
         const eventsData = await eventsResponse.json();
-        setEvents(eventsData);
-        setTotalEvents(eventsData.length);
+        setEvents(eventsData.events || eventsData || []);
+        setTotalEvents((eventsData.events || eventsData || []).length);
         
         // Process events by month for chart
-        const eventsByMonthData = processEventsByMonth(eventsData);
+        const eventsByMonthData = processEventsByMonth(eventsData.events || eventsData || []);
         setEventsByMonth(eventsByMonthData);
         
         // Fetch notices for student's department and semester
         const noticesResponse = await fetch(`/api/notices?department=${user.department}&semester=${user.semester}`);
         const noticesData = await noticesResponse.json();
-        setNotices(noticesData);
+        setNotices(noticesData.notices || noticesData || []);
         
         // Combine posters from both notices and events
         const allPosters = [
-          ...noticesData.filter((item: any) => item.poster).map((item: any) => ({ ...item, type: 'notice' })),
-          ...eventsData.filter((item: any) => item.poster).map((item: any) => ({ ...item, type: 'event' }))
+          ...(noticesData.notices || noticesData || []).filter((item: any) => item.poster).map((item: any) => ({ ...item, type: 'notice' })),
+          ...(eventsData.events || eventsData || []).filter((item: any) => item.poster).map((item: any) => ({ ...item, type: 'event' }))
         ];
         setPosters(allPosters);
         
