@@ -35,8 +35,8 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
       
       if (result.success) {
         setUser(result.user);
-        // Navigate to the appropriate portal based on role
-        navigate(`/${role}`);
+        // Navigate to the appropriate portal based on user's role from server
+        navigate(`/${result.user.role}`);
       } else {
         setError(result.message || 'Invalid username, password, or role');
       }
@@ -77,8 +77,8 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
       
       if (result.success) {
         setUser(result.user);
-        // Navigate to the appropriate portal based on role
-        navigate(`/${role}`);
+        // Navigate to the appropriate portal based on user's role from server
+        navigate(`/${result.user.role}`);
       } else {
         setError(result.message || 'Failed to signup. Please try again.');
       }

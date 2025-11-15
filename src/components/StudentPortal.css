@@ -758,3 +758,104 @@ select:focus {
     width: 100%;
   }
 }
+
+/* Sidebar collapse for mobile */
+.student-portal.sidebar-closed .sidebar {
+  transform: translateX(-110%);
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.student-portal.sidebar-closed .main {
+  width: 100%;
+  padding-left: 20px;
+}
+
+.mobile-header {
+  display: none;
+  margin-bottom: 12px;
+}
+
+.hamburger {
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 200;
+    transform: translateX(0);
+  }
+  .student-portal.sidebar-closed .sidebar {
+    transform: translateX(-110%);
+  }
+}
+
+/* Left edge hover area to reveal sidebar */
+.edge-hover {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 16px;
+  height: 100vh;
+  z-index: 250;
+  background: transparent;
+}
+
+/* Small fixed button shown when sidebar is closed (touch devices) */
+.edge-button {
+  position: fixed;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 260;
+  background: var(--btn-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(13,110,253,0.2);
+}
+
+/* Backdrop overlay shown when sidebar is open on small screens */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 190;
+  opacity: 0;
+  pointer-events: none; /* disabled when hidden so clicks pass through */
+  transition: opacity 220ms ease;
+}
+
+/* When visible, allow interaction and fade in */
+.sidebar-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (min-width: 769px) {
+  /* hide edge button on larger screens where sidebar is visible */
+  .edge-button {
+    display: none;
+  }
+}

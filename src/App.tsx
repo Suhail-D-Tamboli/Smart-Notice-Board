@@ -7,11 +7,27 @@ import TeacherPortal from './components/TeacherPortal';
 import './App.css';
 
 function App() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => {
+    // Load user from localStorage on initial render
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   useEffect(() => {
     console.log('App: User state changed:', user);
+    // Save user to localStorage whenever it changes
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
   }, [user]);
+
+  // Central logout handler passed to portals
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -19,42 +35,31 @@ function App() {
         <Routes>
           <Route path="/" element={
             user ? (
-              <div>
-                <p>Redirecting to {user.role} portal...</p>
-                <Navigate to={`/${user.role}`} replace />
-              </div>
+              <Navigate to={`/${user.role}`} replace />
             ) : (
               <Login setUser={setUser} />
             )
           } />
           <Route path="/student" element={
             user?.role === 'student' ? (
-              <StudentPortal user={user} />
+              <StudentPortal user={user} logout={logout} />
             ) : (
-              <div>
-                <p>Access denied or not logged in as student. Redirecting to login...</p>
-                <Navigate to="/" replace />
-              </div>
+              <Navigate to="/" replace />
             )
-          } />
-          <Route path="/student/dashboard" element={
-            user?.role === 'student' ? (
-              <StudentDashboard user={user} />
-            ) : (
-              <div>
-                <p>Access denied or not logged in as student. Redirecting to login...</p>
+          }>
+            <Route path="dashboard" element={
+              user?.role === 'student' ? (
+                <StudentDashboard user={user} />
+              ) : (
                 <Navigate to="/" replace />
-              </div>
-            )
-          } />
+              )
+            } />
+          </Route>
           <Route path="/teacher" element={
             user?.role === 'teacher' ? (
-              <TeacherPortal user={user} />
+              <TeacherPortal user={user} logout={logout} />
             ) : (
-              <div>
-                <p>Access denied or not logged in as teacher. Redirecting to login...</p>
-                <Navigate to="/" replace />
-              </div>
+              <Navigate to="/" replace />
             )
           } />
         </Routes>

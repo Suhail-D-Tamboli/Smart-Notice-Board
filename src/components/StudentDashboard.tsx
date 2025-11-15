@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useNavigate } from 'react-router-dom';
 import './StudentDashboard.css';
 
 // Mock data for initial loading and fallback
@@ -81,7 +80,6 @@ interface StudentDashboardProps {
 }
 
 const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
-  const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [posters, setPosters] = useState<any[]>([]); // New state for posters
@@ -204,31 +202,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
       </div>
     );
   }
-
   return (
     <div className="dashboard-container">
-      {/* Navigation Bar */}
-      <nav className="dashboard-navbar">
-        <div className="nav-brand">Smart Campus Hub</div>
-        <div className="nav-links">
-          <button className="nav-link active" onClick={() => navigate('/student/dashboard')}>
-            <span className="nav-icon">📊</span>
-            Dashboard
-          </button>
-          <button className="nav-link" onClick={() => navigate('/student')}>
-            <span className="nav-icon">✅</span>
-            My Events
-          </button>
-          <button className="nav-link">
-            <span className="nav-icon">👤</span>
-            Profile
-          </button>
-          <button className="nav-link" onClick={() => navigate('/')}>
-            <span className="nav-icon">🚪</span>
-            Logout
-          </button>
-        </div>
-      </nav>
       
       {/* Welcome Banner */}
       <div className="quote-section">

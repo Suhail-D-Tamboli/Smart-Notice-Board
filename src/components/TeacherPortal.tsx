@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './TeacherPortal.css';
 
 interface TeacherPortalProps {
   user: any;
+  logout: () => void;
 }
 
 interface Notice {
@@ -46,9 +48,10 @@ interface StudentRegistration {
   [key: string]: string;
 }
 
-const TeacherPortal: React.FC<TeacherPortalProps> = ({ user }) => {
+const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
   console.log('TeacherPortal: Rendering with user:', user);
   
+  const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState<'notices' | 'events' | 'home'>('home');
   const [showNoticeSubmenu, setShowNoticeSubmenu] = useState(false);
   const [showEventSubmenu, setShowEventSubmenu] = useState(false);
@@ -694,10 +697,15 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user }) => {
     (e.description && e.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  // Use central logout passed from App
+
   return (
     <div className="teacher-portal">
       <div className="sidebar">
         <h2>Teachers Portal</h2>
+        <div style={{ padding: '0 16px 16px 16px', fontSize: '14px', color: 'var(--muted)' }}>
+          <div>Welcome, {user.name}</div>
+        </div>
         <div className="menu-item" onClick={() => setActiveMenu('home')}>Home</div>
         <div className="menu-item" onClick={() => toggleSubmenu('noticeSub')}>Notices</div>
         {showNoticeSubmenu && (
@@ -713,6 +721,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user }) => {
             <button onClick={() => alert('Click on any event to edit it.')}>Edit Event</button>
           </div>
         )}
+        <div className="menu-item logout-item" onClick={() => { logout(); navigate('/'); }} style={{ marginTop: 'auto', color: '#dc3545', cursor: 'pointer' }}>
+          Logout
+        </div>
       </div>
 
       <div className="main">

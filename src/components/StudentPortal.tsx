@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import StudentRegistrationForm from './StudentRegistrationForm';
 import { subscribeToPushNotifications } from '../services/pushNotificationService';
 import './StudentPortal.css';
+import StudentPortalHome from './StudentPortalHome';
 
 interface Notice {
   _id: string;
@@ -35,6 +36,7 @@ interface Event {
 
 interface StudentPortalProps {
   user: any;
+  logout: () => void;
 }
 
 // Improved translation function with actual text translation simulation
@@ -451,7 +453,7 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
   }
 };
 
-const StudentPortal: React.FC<StudentPortalProps> = ({ user }) => {
+const StudentPortal: React.FC<StudentPortalProps> = ({ user, logout }) => {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -978,144 +980,132 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ user }) => {
     ));
   };
 
+  // Use the central logout provided by App
+
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => window.innerWidth > 768);
+  const [transientHover, setTransientHover] = useState<boolean>(false);
+  const [manualOpen, setManualOpen] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => window.innerWidth <= 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   return (
-    <div className="student-portal">
-      <div className="sidebar">
+    <div className={`student-portal${sidebarOpen ? '' : ' sidebar-closed'}`}>
+      {/* Left-edge hover zone to reveal sidebar when closed */}
+      <div
+        className="edge-hover"
+        onMouseEnter={() => {
+          if (!sidebarOpen) {
+            setSidebarOpen(true);
+            setTransientHover(true);
+            setManualOpen(false);
+          }
+        }}
+      />
+
+      <div
+        className="sidebar"
+        onMouseLeave={() => {
+          if (transientHover && !manualOpen) {
+            setSidebarOpen(false);
+            setTransientHover(false);
+          } else if (transientHover && manualOpen) {
+            // clear transient flag but keep sidebar open because user manually opened it
+            setTransientHover(false);
+          }
+        }}
+      >
         <h2>Smart Campus Hub</h2>
         <div style={{ padding: '0 16px 16px 16px', fontSize: '14px', color: 'var(--muted)' }}>
+          <div>Welcome, {user.name}</div>
           <div>Department: {user.department}</div>
           <div>Semester: {user.semester}</div>
         </div>
         <button 
           className={currentView === 'dashboard' ? 'active' : ''}
-          onClick={() => navigate('/student/dashboard')}
+          onClick={() => { setCurrentView('dashboard'); navigate('/student/dashboard'); setSidebarOpen(true); }}
         >
           Dashboard
         </button>
         <button 
           className={currentView === 'notices' ? 'active' : ''}
-          onClick={() => setCurrentView('notices')}
+          onClick={() => { setCurrentView('notices'); navigate('/student'); setSidebarOpen(false); }}
         >
           Notices
         </button>
         <button 
           className={currentView === 'events' ? 'active' : ''}
-          onClick={() => setCurrentView('events')}
+          onClick={() => { setCurrentView('events'); navigate('/student'); setSidebarOpen(false); }}
         >
           Events
+        </button>
+        <button 
+          className="logout-btn"
+          onClick={() => { logout(); navigate('/'); }}
+          style={{ marginTop: 'auto', backgroundColor: '#dc3545' }}
+        >
+          Logout
         </button>
       </div>
       
       <div className="main">
-        <div className="toolbar">
-          <div className="controls">
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="input"
-              // Add search functionality here if needed
-            />
-            
-            {/* Notification Bell - Positioned prominently */}
-            <button
-              onClick={enableNotifications}
-              disabled={notificationEnabled || checkingNotification}
-              style={{
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: '2px solid',
-                borderColor: notificationEnabled ? '#10b981' : '#3b82f6',
-                background: notificationEnabled ? '#10b981' : '#3b82f6',
-                color: 'white',
-                cursor: notificationEnabled ? 'default' : 'pointer',
-                fontSize: '16px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                opacity: checkingNotification ? 0.7 : 1,
-                minWidth: '140px',
-                justifyContent: 'center',
-                transition: 'all 0.3s ease'
-              }}
-              title={notificationEnabled ? 'Notifications enabled' : 'Enable push notifications'}
-            >
-              <span style={{ fontSize: '20px' }}>
-                {checkingNotification ? '⏳' : (notificationEnabled ? '🔔✅' : '🔔')}
-              </span>
-              <span>
-                {checkingNotification ? 'Checking...' : (notificationEnabled ? 'Enabled' : 'Enable Alerts')}
-              </span>
-            </button>
-            
-            <div className="spacer"></div>
-          </div>
-          
-          {/* Language Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
-            <span style={{ fontSize: '14px', color: 'var(--muted)', fontWeight: '600' }}>Language:</span>
-            <select 
-              value={language}
-              onChange={(e) => handleLanguageChange(e.target.value as 'en' | 'kn' | 'hi')}
-              style={{ 
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                background: 'var(--input-bg)',
-                color: 'var(--text)',
-                fontSize: '14px'
-              }}
-              disabled={translating}
-            >
-              <option value="en">English</option>
-              <option value="kn">ಕನ್ನಡ (Kannada)</option>
-              <option value="hi">हिंदी (Hindi)</option>
-            </select>
-            {translating && (
-              <span style={{ fontSize: '14px', color: 'var(--muted)' }}>Translating...</span>
-            )}
-          </div>
+        <div className="mobile-header">
+          <button
+            className="hamburger"
+            onClick={() => {
+              setSidebarOpen(v => !v);
+              setManualOpen(m => !m);
+              setTransientHover(false);
+            }}
+            aria-label="Toggle sidebar"
+          >☰</button>
         </div>
-        
-        <div className="lists">
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2>{currentView === 'notices' ? 'Notices' : 'Events'}</h2>
-              <div>
-                <button 
-                  className={currentView === 'notices' ? 'active' : ''}
-                  onClick={() => setCurrentView('notices')}
-                  style={{ 
-                    padding: '10px 20px',
-                    marginRight: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border)',
-                    background: currentView === 'notices' ? 'var(--accent)' : 'transparent',
-                    color: currentView === 'notices' ? 'white' : 'var(--text)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Notices
-                </button>
-                <button 
-                  className={currentView === 'events' ? 'active' : ''}
-                  onClick={() => setCurrentView('events')}
-                  style={{ 
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border)',
-                    background: currentView === 'events' ? 'var(--accent)' : 'transparent',
-                    color: currentView === 'events' ? 'white' : 'var(--text)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Events
-                </button>
-              </div>
-            </div>
-            {renderItems()}
-          </div>
-        </div>
+
+        {/* Small fixed edge button for touch devices when sidebar is closed */}
+        {!sidebarOpen && (
+          <button
+            className="edge-button"
+            onClick={() => {
+              setSidebarOpen(true);
+              setManualOpen(true);
+            }}
+            aria-label="Open sidebar"
+          >☰</button>
+        )}
+
+        {/* Backdrop overlay on small screens: always rendered so we can animate fade in/out via CSS.
+            Clicking closes the sidebar but handler is guarded so clicks when hidden do nothing. */}
+        <div
+          className={`sidebar-backdrop ${sidebarOpen && isMobile ? 'visible' : ''}`}
+          aria-hidden={!(sidebarOpen && isMobile)}
+          onClick={() => {
+            if (!(sidebarOpen && isMobile)) return;
+            // close sidebar when backdrop is clicked
+            setSidebarOpen(false);
+            setManualOpen(false);
+            setTransientHover(false);
+          }}
+        />
+        {location.pathname === '/student' || location.pathname === '/student/' ? (
+          <StudentPortalHome
+            currentView={currentView}
+            setCurrentView={setCurrentView}
+            language={language}
+            handleLanguageChange={handleLanguageChange}
+            translating={translating}
+            notificationEnabled={notificationEnabled}
+            checkingNotification={checkingNotification}
+            enableNotifications={enableNotifications}
+            renderItems={renderItems}
+          />
+        ) : (
+          <Outlet />
+        )}
       </div>
       
       {showRegistrationForm && selectedEvent && (
