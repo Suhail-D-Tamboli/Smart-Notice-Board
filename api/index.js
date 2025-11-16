@@ -366,6 +366,36 @@ app.post('/api/push-subscribe', async (req, res) => {
   }
 });
 
+// Update user notification status
+app.post('/api/users/:userId/notifications', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { notificationsEnabled } = req.body;
+    
+    console.log('Updating notification status for user:', userId, 'enabled:', notificationsEnabled);
+    
+    const database = await connectToDatabase();
+    if (!database) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+    
+    // Update user's notification status
+    const result = await database.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { notificationsEnabled: notificationsEnabled } }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update notification status error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Send push notification
 app.post('/api/send-notification', async (req, res) => {
   try {
