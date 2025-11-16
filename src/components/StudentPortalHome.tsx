@@ -9,6 +9,7 @@ interface Props {
   notificationEnabled: boolean;
   checkingNotification: boolean;
   enableNotifications: () => Promise<void>;
+  testNotification: () => Promise<void>;
   renderItems: () => React.ReactNode;
 }
 
@@ -21,6 +22,7 @@ const StudentPortalHome: React.FC<Props> = ({
   notificationEnabled,
   checkingNotification,
   enableNotifications,
+  testNotification,
   renderItems
 }) => {
   return (
@@ -63,6 +65,32 @@ const StudentPortalHome: React.FC<Props> = ({
               {checkingNotification ? 'Checking...' : (notificationEnabled ? 'Enabled' : 'Enable Alerts')}
             </span>
           </button>
+
+          {notificationEnabled && (
+            <button
+              onClick={testNotification}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '8px',
+                border: '2px solid #f59e0b',
+                background: '#f59e0b',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                minWidth: '140px',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease'
+              }}
+              title="Send a test notification"
+            >
+              <span style={{ fontSize: '20px' }}>🧪</span>
+              <span>Test Alert</span>
+            </button>
+          )}
 
           <div className="spacer"></div>
         </div>

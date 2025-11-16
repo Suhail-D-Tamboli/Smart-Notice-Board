@@ -1,5 +1,5 @@
 // Service Worker for Push Notifications
-// Version: 1.5
+// Version: 1.6
 
 self.addEventListener('push', function(event) {
   console.log('Push notification received:', event);

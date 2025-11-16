@@ -689,6 +689,39 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ user, logout }) => {
     }
   };
 
+  // Test notification function
+  const testNotification = async () => {
+    try {
+      if (!notificationEnabled) {
+        alert('⚠️ Please enable notifications first!');
+        return;
+      }
+
+      console.log('Sending test notification...');
+      const response = await fetch('/api/send-test-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user._id,
+          title: '🧪 Test Notification',
+          body: 'This is a test notification from Smart Campus Hub!',
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert('✅ Test notification sent! Check your notifications.');
+      } else {
+        alert('❌ Failed to send test notification.');
+      }
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      alert('❌ Error sending test notification');
+    }
+  };
+
   // Function to translate notices and events
   const translateContent = async (targetLang: 'en' | 'kn' | 'hi') => {
     console.log('translateContent called with:', targetLang, 'Notices:', notices.length, 'Events:', events.length);
@@ -1101,6 +1134,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ user, logout }) => {
             notificationEnabled={notificationEnabled}
             checkingNotification={checkingNotification}
             enableNotifications={enableNotifications}
+            testNotification={testNotification}
             renderItems={renderItems}
           />
         ) : (

@@ -449,6 +449,37 @@ app.post('/api/send-notification', async (req, res) => {
   }
 });
 
+// Send test notification to specific user
+app.post('/api/send-test-notification', async (req, res) => {
+  try {
+    const { userId, title, body } = req.body;
+    
+    if (!db) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    // Get user's subscription
+    const userSubscription = await db.collection('subscriptions').findOne({ userId });
+    
+    if (!userSubscription || !userSubscription.subscription) {
+      return res.status(404).json({ success: false, message: 'No subscription found for user' });
+    }
+    
+    const payload = JSON.stringify({ 
+      title: title || 'Test Notification', 
+      body: body || 'This is a test notification',
+      url: '/student'
+    });
+    
+    await webpush.sendNotification(userSubscription.subscription, payload);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Send test notification error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Serve React app for all other routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
