@@ -193,6 +193,39 @@ app.post('/api/notices', upload.single('poster'), async (req, res) => {
 
     const result = await database.collection('notices').insertOne(notice);
     
+    // Send push notifications to all subscribed students
+    try {
+      const subscriptions = await database.collection('subscriptions').find({}).toArray();
+      console.log(`Sending notice notification to ${subscriptions.length} subscribers`);
+      
+      const payload = JSON.stringify({
+        title: '📢 New Notice',
+        body: title,
+        icon: '/favicon.ico',
+        url: '/student',
+        noticeId: result.insertedId.toString(),
+        tag: 'notice-' + result.insertedId.toString()
+      });
+      
+      const promises = subscriptions.map(sub => 
+        webpush.sendNotification(sub.subscription, payload)
+          .then(() => console.log('Notification sent to:', sub.userId))
+          .catch(err => {
+            console.error('Error sending notification to', sub.userId, ':', err.message);
+            // If subscription is invalid, remove it
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              database.collection('subscriptions').deleteOne({ _id: sub._id });
+            }
+          })
+      );
+      
+      await Promise.all(promises);
+      console.log('Notice notifications sent successfully');
+    } catch (notifError) {
+      console.error('Error sending push notifications:', notifError);
+      // Don't fail the notice creation if notifications fail
+    }
+    
     res.json({ success: true, noticeId: result.insertedId });
   } catch (error) {
     console.error('Add notice error:', error);
@@ -260,6 +293,39 @@ app.post('/api/events', async (req, res) => {
     };
 
     const result = await database.collection('events').insertOne(event);
+    
+    // Send push notifications to all subscribed students
+    try {
+      const subscriptions = await database.collection('subscriptions').find({}).toArray();
+      console.log(`Sending event notification to ${subscriptions.length} subscribers`);
+      
+      const payload = JSON.stringify({
+        title: '🎉 New Event',
+        body: title,
+        icon: '/favicon.ico',
+        url: '/student',
+        eventId: result.insertedId.toString(),
+        tag: 'event-' + result.insertedId.toString()
+      });
+      
+      const promises = subscriptions.map(sub => 
+        webpush.sendNotification(sub.subscription, payload)
+          .then(() => console.log('Notification sent to:', sub.userId))
+          .catch(err => {
+            console.error('Error sending notification to', sub.userId, ':', err.message);
+            // If subscription is invalid, remove it
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              database.collection('subscriptions').deleteOne({ _id: sub._id });
+            }
+          })
+      );
+      
+      await Promise.all(promises);
+      console.log('Event notifications sent successfully');
+    } catch (notifError) {
+      console.error('Error sending push notifications:', notifError);
+      // Don't fail the event creation if notifications fail
+    }
     
     res.json({ success: true, eventId: result.insertedId });
   } catch (error) {
