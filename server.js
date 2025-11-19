@@ -27,6 +27,14 @@ let db;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -190,8 +198,30 @@ app.get('/api/notices', async (req, res) => {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
+    const { department, semester } = req.query;
+    
+    // If department and semester are provided, filter by them
+    let query = {};
+    if (department && semester) {
+      // For multiple departments and semesters, use $in operator
+      const departmentArray = department.split(',').map(d => d.trim());
+      const semesterArray = semester.split(',').map(s => s.trim());
+      
+      query = { 
+        department: { $in: departmentArray },
+        semester: { $in: semesterArray }
+      };
+      console.log('Using query filter:', query);
+    } else if (department) {
+      const departmentArray = department.split(',').map(d => d.trim());
+      query = { department: { $in: departmentArray } };
+    } else if (semester) {
+      const semesterArray = semester.split(',').map(s => s.trim());
+      query = { semester: { $in: semesterArray } };
+    }
+
     const notices = await db.collection('notices')
-      .find({})
+      .find(query)
       .sort({ date: -1 })
       .toArray();
     
@@ -209,7 +239,12 @@ app.post('/api/notices', upload.single('poster'), async (req, res) => {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
-    const { title, description, date, category } = req.body;
+    const { title, description, date, category, semester, department, createdBy } = req.body;
+    
+    // Handle multiple semesters and departments
+    const semesterArray = semester ? semester.split(',').map(s => s.trim()).filter(s => s) : [];
+    const departmentArray = department ? department.split(',').map(d => d.trim()).filter(d => d) : [];
+    
     const poster = req.file ? {
       data: req.file.buffer.toString('base64'),
       contentType: req.file.mimetype
@@ -220,6 +255,9 @@ app.post('/api/notices', upload.single('poster'), async (req, res) => {
       description,
       date: new Date(date),
       category,
+      semester: semesterArray.length > 0 ? semesterArray : undefined,
+      department: departmentArray.length > 0 ? departmentArray : undefined,
+      createdBy,
       poster,
       createdAt: new Date()
     };
@@ -266,6 +304,47 @@ app.post('/api/notices', upload.single('poster'), async (req, res) => {
   }
 });
 
+// Update notice endpoint
+app.put('/api/notices/:id', async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    const { id } = req.params;
+    const { title, description, date, category, semester, department, createdBy } = req.body;
+    
+    // Handle multiple semesters and departments
+    const semesterArray = semester ? semester.split(',').map(s => s.trim()).filter(s => s) : [];
+    const departmentArray = department ? department.split(',').map(d => d.trim()).filter(d => d) : [];
+    
+    const updateData = {
+      title,
+      description,
+      date: new Date(date),
+      category,
+      semester: semesterArray.length > 0 ? semesterArray : undefined,
+      department: departmentArray.length > 0 ? departmentArray : undefined,
+      createdBy,
+      updatedAt: new Date()
+    };
+
+    const result = await db.collection('notices').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Notice not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update notice error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Delete notice endpoint
 app.delete('/api/notices/:id', async (req, res) => {
   try {
@@ -294,8 +373,30 @@ app.get('/api/events', async (req, res) => {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
+    const { department, semester } = req.query;
+    
+    // If department and semester are provided, filter by them
+    let query = {};
+    if (department && semester) {
+      // For multiple departments and semesters, use $in operator
+      const departmentArray = department.split(',').map(d => d.trim());
+      const semesterArray = semester.split(',').map(s => s.trim());
+      
+      query = { 
+        department: { $in: departmentArray },
+        semester: { $in: semesterArray }
+      };
+      console.log('Using query filter:', query);
+    } else if (department) {
+      const departmentArray = department.split(',').map(d => d.trim());
+      query = { department: { $in: departmentArray } };
+    } else if (semester) {
+      const semesterArray = semester.split(',').map(s => s.trim());
+      query = { semester: { $in: semesterArray } };
+    }
+
     const events = await db.collection('events')
-      .find({})
+      .find(query)
       .sort({ date: -1 })
       .toArray();
     
@@ -313,12 +414,20 @@ app.post('/api/events', async (req, res) => {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
-    const { title, description, date, location } = req.body;
+    const { title, description, date, location, semester, department, createdBy } = req.body;
+    
+    // Handle multiple semesters and departments
+    const semesterArray = semester ? semester.split(',').map(s => s.trim()).filter(s => s) : [];
+    const departmentArray = department ? department.split(',').map(d => d.trim()).filter(d => d) : [];
+    
     const event = {
       title,
       description,
       date: new Date(date),
-      location,
+      ...(location && { location }),
+      semester: semesterArray.length > 0 ? semesterArray : undefined,
+      department: departmentArray.length > 0 ? departmentArray : undefined,
+      createdBy,
       createdAt: new Date()
     };
 
@@ -360,6 +469,47 @@ app.post('/api/events', async (req, res) => {
     res.json({ success: true, eventId: result.insertedId });
   } catch (error) {
     console.error('Add event error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Update event endpoint
+app.put('/api/events/:id', async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    const { id } = req.params;
+    const { title, description, date, location, semester, department, createdBy } = req.body;
+    
+    // Handle multiple semesters and departments
+    const semesterArray = semester ? semester.split(',').map(s => s.trim()).filter(s => s) : [];
+    const departmentArray = department ? department.split(',').map(d => d.trim()).filter(d => d) : [];
+    
+    const updateData = {
+      title,
+      description,
+      date: new Date(date),
+      ...(location && { location }),
+      semester: semesterArray.length > 0 ? semesterArray : undefined,
+      department: departmentArray.length > 0 ? departmentArray : undefined,
+      createdBy,
+      updatedAt: new Date()
+    };
+
+    const result = await db.collection('events').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update event error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

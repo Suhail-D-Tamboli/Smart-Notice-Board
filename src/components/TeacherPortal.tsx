@@ -12,12 +12,12 @@ interface Notice {
   title: string;
   description: string;
   date: string;
-  semester?: string;
-  department?: string;
+  semester?: string | string[];
+  department?: string | string[];
   createdBy: string;
   createdAt: string;
   file?: string;
-  poster?: string; // Add poster property
+  poster?: string;
 }
 
 interface Event {
@@ -30,9 +30,9 @@ interface Event {
   file?: string;
   registrationFields?: string[];
   hasRegistrationForm?: boolean;
-  poster?: string; // Add poster property
-  semester?: string;
-  department?: string;
+  poster?: string;
+  semester?: string | string[];
+  department?: string | string[];
 }
 
 interface StudentRegistration {
@@ -44,9 +44,21 @@ interface StudentRegistration {
   department: string;
   semester: string;
   createdAt: string;
-  // Additional fields for registration form
   [key: string]: string;
 }
+
+// Define available departments and semesters
+const DEPARTMENTS = [
+  { id: 'CS', name: 'Computer Science' },
+  { id: 'EC', name: 'Electronics' },
+  { id: 'ISE', name: 'Information Science' },
+  { id: 'AIML', name: 'AI/ML' },
+  { id: 'DS', name: 'Data Science' },
+  { id: 'CE', name: 'Civil' },
+  { id: 'ME', name: 'Mechanical' }
+];
+
+const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
   console.log('TeacherPortal: Rendering with user:', user);
@@ -64,16 +76,17 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
   const [noticeForm, setNoticeForm] = useState({
     title: '',
     description: '',
-    semester: '',
-    department: '',
+    semesters: [] as string[], // Changed to array for multiple selections
+    departments: [] as string[], // Changed to array for multiple selections
     file: null as File | null
   });
   const [eventForm, setEventForm] = useState({
     title: '',
     description: '',
     date: '',
-    semester: '',
-    department: '',
+    location: '',
+    semester: [] as string[],
+    department: [] as string[],
     file: null as File | null,
     generateRegistration: false
   });
@@ -94,7 +107,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
     'Semester'
   ]);
   const [newField, setNewField] = useState('');
-  const [generatingPoster, setGeneratingPoster] = useState<string | null>(null); // Track which item is generating poster
+  const [generatingPoster, setGeneratingPoster] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isEventListening, setIsEventListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
@@ -321,8 +334,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
     setNoticeForm({
       title: '',
       description: '',
-      semester: '',
-      department: '',
+      semesters: [],
+      departments: [],
       file: null
     });
   };
@@ -334,8 +347,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
       title: '',
       description: '',
       date: '',
-      semester: '',
-      department: '',
+      location: '',
+      semester: [],
+      department: [],
       file: null,
       generateRegistration: false
     });
@@ -372,8 +386,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
       const formData = new FormData();
       formData.append('title', noticeForm.title);
       formData.append('description', noticeForm.description);
-      formData.append('semester', noticeForm.semester);
-      formData.append('department', noticeForm.department);
+      formData.append('semester', noticeForm.semesters.join(','));
+      formData.append('department', noticeForm.departments.join(','));
       formData.append('createdBy', user.username);
       
       if (noticeForm.file) {
@@ -398,8 +412,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
         setNoticeForm({
           title: '',
           description: '',
-          semester: '',
-          department: '',
+          semesters: [],
+          departments: [],
           file: null
         });
         setEditingNotice(null);
@@ -431,8 +445,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
       formData.append('title', eventForm.title);
       formData.append('description', eventForm.description);
       formData.append('date', eventForm.date);
-      formData.append('semester', eventForm.semester || '');
-      formData.append('department', eventForm.department || '');
+      formData.append('location', eventForm.location);
+      formData.append('semester', Array.isArray(eventForm.semester) ? eventForm.semester.join(',') : eventForm.semester || '');
+      formData.append('department', Array.isArray(eventForm.department) ? eventForm.department.join(',') : eventForm.department || '');
       formData.append('createdBy', user.username);
       
       if (eventForm.file) {
@@ -464,8 +479,9 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
           title: '',
           description: '',
           date: '',
-          semester: '',
-          department: '',
+          location: '',
+          semester: [],
+          department: [],
           file: null,
           generateRegistration: false
         });
@@ -547,11 +563,25 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
 
   const editNotice = (notice: Notice) => {
     setEditingNotice(notice);
+    
+    // Convert single values to arrays for form compatibility
+    const semestersArray = Array.isArray(notice.semester) 
+      ? notice.semester 
+      : notice.semester 
+        ? notice.semester.split(',') 
+        : [];
+        
+    const departmentsArray = Array.isArray(notice.department) 
+      ? notice.department 
+      : notice.department 
+        ? notice.department.split(',') 
+        : [];
+    
     setNoticeForm({
       title: notice.title,
       description: notice.description,
-      semester: notice.semester || '',
-      department: notice.department || '',
+      semesters: semestersArray,
+      departments: departmentsArray,
       file: null
     });
     showAddNoticeForm();
@@ -559,12 +589,27 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
 
   const editEvent = (event: Event) => {
     setEditingEvent(event);
+    
+    // Convert single values to arrays for form compatibility
+    const semestersArray = Array.isArray(event.semester) 
+      ? event.semester 
+      : event.semester 
+        ? event.semester.split(',') 
+        : [];
+        
+    const departmentsArray = Array.isArray(event.department) 
+      ? event.department 
+      : event.department 
+        ? event.department.split(',') 
+        : [];
+    
     setEventForm({
       title: event.title,
       description: event.description,
       date: new Date(event.date).toISOString().split('T')[0],
-      semester: event.semester || '',
-      department: event.department || '',
+      location: event.location || '',
+      semester: semestersArray,
+      department: departmentsArray,
       file: null,
       generateRegistration: false
     });
@@ -691,6 +736,26 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
     (n.title && n.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (n.description && n.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Handle checkbox changes for semesters
+  const handleSemesterChange = (semester: string) => {
+    setNoticeForm(prev => {
+      const newSemesters = prev.semesters.includes(semester)
+        ? prev.semesters.filter(s => s !== semester)
+        : [...prev.semesters, semester];
+      return { ...prev, semesters: newSemesters };
+    });
+  };
+
+  // Handle checkbox changes for departments
+  const handleDepartmentChange = (department: string) => {
+    setNoticeForm(prev => {
+      const newDepartments = prev.departments.includes(department)
+        ? prev.departments.filter(d => d !== department)
+        : [...prev.departments, department];
+      return { ...prev, departments: newDepartments };
+    });
+  };
 
   const filteredEvents = events.filter(e => 
     (e.title && e.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -850,28 +915,41 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
                   🔴 Listening... Speak now
                 </p>
               )}
-              <select 
-                value={noticeForm.semester}
-                onChange={(e) => setNoticeForm({...noticeForm, semester: e.target.value})}
-              >
-                <option value="">Select Semester</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                  <option key={num} value={num.toString()}>Semester {num}</option>
-                ))}
-              </select>
-              <select 
-                value={noticeForm.department}
-                onChange={(e) => setNoticeForm({...noticeForm, department: e.target.value})}
-              >
-                <option value="">Select Department</option>
-                <option value="CS">Computer Science</option>
-                <option value="EC">Electronics</option>
-                <option value="ISE">Information Science</option>
-                <option value="AIML">AI/ML</option>
-                <option value="DS">Data Science</option>
-                <option value="CE">Civil</option>
-                <option value="ME">Mechanical</option>
-              </select>
+              {/* Multiple Semester Selection */}
+              <div className="checkbox-group">
+                <label>Select Semesters:</label>
+                <div className="checkbox-container">
+                  {SEMESTERS.map(num => (
+                    <label key={num} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        value={num.toString()}
+                        checked={noticeForm.semesters.includes(num.toString())}
+                        onChange={() => handleSemesterChange(num.toString())}
+                      />
+                      Semester {num}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Multiple Department Selection */}
+              <div className="checkbox-group">
+                <label>Select Departments:</label>
+                <div className="checkbox-container">
+                  {DEPARTMENTS.map(dept => (
+                    <label key={dept.id} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        value={dept.id}
+                        checked={noticeForm.departments.includes(dept.id)}
+                        onChange={() => handleDepartmentChange(dept.id)}
+                      />
+                      {dept.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
               <button type="button" onClick={() => triggerFileInput('notice')}>
                 Choose File
               </button>
@@ -943,28 +1021,76 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
                 value={eventForm.date}
                 onChange={(e) => setEventForm({...eventForm, date: e.target.value})}
               />
-              <select 
-                value={eventForm.semester || ''}
-                onChange={(e) => setEventForm({...eventForm, semester: e.target.value})}
-              >
-                <option value="">Select Semester</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                  <option key={num} value={num.toString()}>Semester {num}</option>
-                ))}
-              </select>
-              <select 
-                value={eventForm.department || ''}
-                onChange={(e) => setEventForm({...eventForm, department: e.target.value})}
-              >
-                <option value="">Select Department</option>
-                <option value="CS">Computer Science</option>
-                <option value="EC">Electronics</option>
-                <option value="ISE">Information Science</option>
-                <option value="AIML">AI/ML</option>
-                <option value="DS">Data Science</option>
-                <option value="CE">Civil</option>
-                <option value="ME">Mechanical</option>
-              </select>
+              <label style={{fontWeight: 'bold', marginBottom: '5px', display: 'block', marginTop: '10px'}}>Event Location:</label>
+              <input 
+                type="text" 
+                placeholder="Event Location"
+                value={eventForm.location}
+                onChange={(e) => setEventForm({...eventForm, location: e.target.value})}
+              />
+              {/* Multiple Semester Selection */}
+              <div className="checkbox-group">
+                <label>Select Semesters:</label>
+                <div className="checkbox-container">
+                  {SEMESTERS.map(num => (
+                    <label key={num} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        value={num.toString()}
+                        checked={Array.isArray(eventForm.semester) && eventForm.semester.includes(num.toString())}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            // Add to semester array
+                            setEventForm({
+                              ...eventForm, 
+                              semester: [...eventForm.semester as string[], num.toString()]
+                            });
+                          } else {
+                            // Remove from semester array
+                            setEventForm({
+                              ...eventForm, 
+                              semester: (eventForm.semester as string[]).filter((s: string) => s !== num.toString())
+                            });
+                          }
+                        }}
+                      />
+                      Semester {num}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Multiple Department Selection */}
+              <div className="checkbox-group">
+                <label>Select Departments:</label>
+                <div className="checkbox-container">
+                  {DEPARTMENTS.map(dept => (
+                    <label key={dept.id} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        value={dept.id}
+                        checked={Array.isArray(eventForm.department) && eventForm.department.includes(dept.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            // Add to department array
+                            setEventForm({
+                              ...eventForm, 
+                              department: [...eventForm.department as string[], dept.id]
+                            });
+                          } else {
+                            // Remove from department array
+                            setEventForm({
+                              ...eventForm, 
+                              department: (eventForm.department as string[]).filter((d: string) => d !== dept.id)
+                            });
+                          }
+                        }}
+                      />
+                      {dept.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
               <button type="button" onClick={() => triggerFileInput('event')}>
                 Choose File
               </button>
@@ -1006,11 +1132,47 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
                       <span className="notice-title">{notice.title}</span>
                       <span className="notice-date">{new Date(notice.date).toLocaleDateString()}</span>
                     </div>
+                    {/* Display createdBy information */}
+                    {notice.createdBy && (
+                      <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '4px', marginBottom: '8px' }}>
+                        Posted by: {notice.createdBy}
+                      </div>
+                    )}
                     <p>{notice.description}</p>
                     {(notice.semester || notice.department) && (
                       <div className="meta" style={{ marginBottom: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {notice.semester && <span className="badge">Sem {notice.semester.replace('sem', '')}</span>}
-                        {notice.department && <span className="badge">{notice.department.toUpperCase()}</span>}
+                        {/* Display multiple semesters */}
+                        {notice.semester && (
+                          <>
+                            {Array.isArray(notice.semester) ? (
+                              notice.semester.map((sem: string, idx: number) => (
+                                <span key={idx} className="badge">Sem {sem.replace('sem', '')}</span>
+                              ))
+                            ) : (
+                              typeof notice.semester === 'string' ? (
+                                notice.semester.split(',').map((sem: string, idx: number) => (
+                                  <span key={idx} className="badge">Sem {sem.replace('sem', '').trim()}</span>
+                                ))
+                              ) : null
+                            )}
+                          </>
+                        )}
+                        {/* Display multiple departments */}
+                        {notice.department && (
+                          <>
+                            {Array.isArray(notice.department) ? (
+                              notice.department.map((dept: string, idx: number) => (
+                                <span key={idx} className="badge">{dept.toUpperCase()}</span>
+                              ))
+                            ) : (
+                              typeof notice.department === 'string' ? (
+                                notice.department.split(',').map((dept: string, idx: number) => (
+                                  <span key={idx} className="badge">{dept.trim().toUpperCase()}</span>
+                                ))
+                              ) : null
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                     <div className="action-btns">

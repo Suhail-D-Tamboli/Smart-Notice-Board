@@ -1,4 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import ChatBot from './ChatBot';
+
+interface Notice {
+  _id: string;
+  title: string;
+  description: string;
+  date: string;
+  semester?: string;
+  department?: string;
+  createdBy: string;
+  createdAt: string;
+}
 
 interface Props {
   currentView: 'notices' | 'events' | 'dashboard';
@@ -11,6 +23,7 @@ interface Props {
   enableNotifications: () => Promise<void>;
   testNotification: () => Promise<void>;
   renderItems: () => React.ReactNode;
+  notices: Notice[];
 }
 
 const StudentPortalHome: React.FC<Props> = ({
@@ -23,10 +36,16 @@ const StudentPortalHome: React.FC<Props> = ({
   checkingNotification,
   enableNotifications,
   testNotification,
-  renderItems
+  renderItems,
+  notices
 }) => {
+  // Debugging: Log when component renders and notices change
+  useEffect(() => {
+    console.log('StudentPortalHome rendered with notices:', notices?.length || 0);
+  }, [notices]);
+
   return (
-    <>
+    <div>
       <div className="toolbar">
         <div className="controls">
           <input
@@ -159,7 +178,8 @@ const StudentPortalHome: React.FC<Props> = ({
           {renderItems()}
         </div>
       </div>
-    </>
+      <ChatBot notices={notices || []} />
+    </div>
   );
 };
 

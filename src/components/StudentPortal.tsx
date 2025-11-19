@@ -4,6 +4,7 @@ import StudentRegistrationForm from './StudentRegistrationForm';
 import { subscribeToPushNotifications } from '../services/pushNotificationService';
 import './StudentPortal.css';
 import StudentPortalHome from './StudentPortalHome';
+import ChatBot from './ChatBot';
 
 interface Notice {
   _id: string;
@@ -874,6 +875,12 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ user, logout }) => {
           <div className="title">{item.title}</div>
           <div className="meta">{new Date(item.date).toLocaleDateString()}</div>
         </div>
+        {/* Display createdBy information for notices */}
+        {currentView === 'notices' && 'createdBy' in item && item.createdBy && (
+          <div className="meta" style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '4px' }}>
+            Posted by: {item.createdBy}
+          </div>
+        )}
         <div className="meta" style={{ marginBottom: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
           {'semester' in item && item.semester && (
             <span className="badge">Sem {item.semester}</span>
@@ -1136,6 +1143,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ user, logout }) => {
             enableNotifications={enableNotifications}
             testNotification={testNotification}
             renderItems={renderItems}
+            notices={translatedNotices}
           />
         ) : (
           <Outlet />
