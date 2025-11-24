@@ -61,7 +61,8 @@ function App() {
             ) : (
               <Navigate to="/" replace />
             )
-          } />
+          }>
+          </Route>
         </Routes>
       </div>
     </Router>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom';
 import './TeacherPortal.css';
 
 interface TeacherPortalProps {
@@ -1175,6 +1175,7 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
             </div>
           )}
         </div>
+        <Outlet />
       </div>
     </div>
   );
