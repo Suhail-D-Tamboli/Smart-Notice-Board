@@ -190,10 +190,26 @@ app.get('/api/notices', async (req, res) => {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
+    // Get query parameters
+    const { department, semester } = req.query;
+    
+    // Build filter based on query parameters
+    let filter = {};
+    if (department) {
+      filter.department = department;
+    }
+    if (semester) {
+      filter.semester = semester;
+    }
+    
+    console.log('Fetching notices with filter:', filter);
+
     const notices = await db.collection('notices')
-      .find({})
+      .find(filter)
       .sort({ date: -1 })
       .toArray();
+    
+    console.log('Found notices:', notices.length);
     
     res.json({ success: true, notices });
   } catch (error) {
@@ -209,7 +225,7 @@ app.post('/api/notices', upload.single('poster'), async (req, res) => {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
-    const { title, description, date, category } = req.body;
+    const { title, description, date, category, department, semester } = req.body;
     const poster = req.file ? {
       data: req.file.buffer.toString('base64'),
       contentType: req.file.mimetype
@@ -220,6 +236,8 @@ app.post('/api/notices', upload.single('poster'), async (req, res) => {
       description,
       date: new Date(date),
       category,
+      department,
+      semester,
       poster,
       createdAt: new Date()
     };
@@ -294,10 +312,26 @@ app.get('/api/events', async (req, res) => {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
+    // Get query parameters
+    const { department, semester } = req.query;
+    
+    // Build filter based on query parameters
+    let filter = {};
+    if (department) {
+      filter.department = department;
+    }
+    if (semester) {
+      filter.semester = semester;
+    }
+    
+    console.log('Fetching events with filter:', filter);
+
     const events = await db.collection('events')
-      .find({})
+      .find(filter)
       .sort({ date: -1 })
       .toArray();
+    
+    console.log('Found events:', events.length);
     
     res.json({ success: true, events });
   } catch (error) {
@@ -313,12 +347,14 @@ app.post('/api/events', async (req, res) => {
       return res.status(503).json({ success: false, message: 'Database not connected' });
     }
 
-    const { title, description, date, location } = req.body;
+    const { title, description, date, location, department, semester } = req.body;
     const event = {
       title,
       description,
       date: new Date(date),
       location,
+      department,
+      semester,
       createdAt: new Date()
     };
 
@@ -395,6 +431,32 @@ app.post('/api/events/:id/registrations', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Event registration error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Get registered events count for a student
+app.get('/api/students/:username/registered-events-count', async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    const { username } = req.params;
+    
+    // Find user by username to get their ID
+    const user = await db.collection('users').findOne({ username });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    // Count registrations for this user
+    const count = await db.collection('registrations').countDocuments({ studentId: user._id.toString() });
+    
+    res.json({ success: true, count });
+  } catch (error) {
+    console.error('Get registered events count error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

@@ -271,8 +271,16 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
         const eventsData = await eventsResponse.json();
         console.log('TeacherPortal: Events data:', eventsData);
         
-        setNotices(noticesData.notices || noticesData || []);
-        setEvents(eventsData.events || eventsData || []);
+        // Handle different response formats
+        const noticesArray = Array.isArray(noticesData) 
+          ? noticesData 
+          : (noticesData.notices || []);
+        const eventsArray = Array.isArray(eventsData) 
+          ? eventsData 
+          : (eventsData.events || []);
+        
+        setNotices(noticesArray);
+        setEvents(eventsArray);
       } catch (err) {
         setError('Failed to load data');
         console.error('TeacherPortal: Error fetching data:', err);
@@ -1009,8 +1017,8 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
                     <p>{notice.description}</p>
                     {(notice.semester || notice.department) && (
                       <div className="meta" style={{ marginBottom: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {notice.semester && <span className="badge">Sem {notice.semester.replace('sem', '')}</span>}
-                        {notice.department && <span className="badge">{notice.department.toUpperCase()}</span>}
+                        {notice.semester && <span className="badge">Sem {String(notice.semester).replace('sem', '')}</span>}
+                        {notice.department && <span className="badge">{String(notice.department).toUpperCase()}</span>}
                       </div>
                     )}
                     <div className="action-btns">
