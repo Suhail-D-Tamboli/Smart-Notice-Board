@@ -434,23 +434,21 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
     try {
       setLoading(true);
       
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('title', eventForm.title);
-      formData.append('description', eventForm.description);
-      formData.append('date', eventForm.date);
-      formData.append('semester', eventForm.semester || '');
-      formData.append('department', eventForm.department || '');
-      formData.append('createdBy', user.username);
-      
-      if (eventForm.file) {
-        formData.append('file', eventForm.file);
-      }
+      // Create event data as JSON
+      const eventData: any = {
+        title: eventForm.title,
+        description: eventForm.description,
+        date: eventForm.date,
+        location: '', // Add location field
+        semester: eventForm.semester || '',
+        department: eventForm.department || '',
+        createdBy: user.username
+      };
       
       if (eventForm.generateRegistration) {
         // Generate AI registration form fields
         const defaultFields = ['Student Name', 'Roll Number', 'Email', 'Department', 'Semester'];
-        formData.append('registrationFields', JSON.stringify(defaultFields));
+        eventData.registrationFields = defaultFields;
       }
 
       const url = editingEvent ? `/api/events/${editingEvent._id}` : '/api/events';
@@ -458,7 +456,10 @@ const TeacherPortal: React.FC<TeacherPortalProps> = ({ user, logout }) => {
 
       const response = await fetch(url, {
         method,
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
       });
 
       if (response.ok) {

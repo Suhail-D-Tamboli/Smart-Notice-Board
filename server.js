@@ -341,7 +341,7 @@ app.get('/api/events', async (req, res) => {
 });
 
 // Add event endpoint
-app.post('/api/events', async (req, res) => {
+app.post('/api/events', upload.none(), async (req, res) => {
   try {
     if (!db) {
       return res.status(503).json({ success: false, message: 'Database not connected' });
@@ -396,6 +396,70 @@ app.post('/api/events', async (req, res) => {
     res.json({ success: true, eventId: result.insertedId });
   } catch (error) {
     console.error('Add event error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Update event endpoint
+app.put('/api/events/:id', upload.none(), async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    const { id } = req.params;
+    const { title, description, date, location, department, semester } = req.body;
+    
+    const updateData = {
+      title,
+      description,
+      date: new Date(date),
+      location,
+      department,
+      semester,
+      updatedAt: new Date()
+    };
+    
+    // Remove undefined fields
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
+
+    const result = await db.collection('events').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update event error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Delete event endpoint
+app.delete('/api/events/:id', async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ success: false, message: 'Database not connected' });
+    }
+
+    const { id } = req.params;
+    const result = await db.collection('events').deleteOne({ _id: new ObjectId(id) });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete event error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
